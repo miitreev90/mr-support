@@ -13,6 +13,7 @@ jobs:
         with:
           components: rustfmt, clippy
       - run: cargo fmt --check
-      - run: cargo check -- -D warnings
+      - run: RUSTFLAGS="-D warnings" cargo check
+        shell: bash
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
