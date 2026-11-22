@@ -14,7 +14,7 @@
 
 - Header (line 1): `GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007`
 - The "How to Apply These Terms to Your New Programs" section (end of file) states: *"either version 3 of the License, or (at your option) any later version"* — this is the standard AGPL-3.0-or-later template language.
-- **PENDING:** The exact SPDX identifier in `Cargo.toml` was not found in the root `Cargo.toml` (no `license =` field present there). GitHub repo metadata reportedly says AGPL-3.0; the LICENCE file's template text points to AGPL-3.0-or-later. **Confirm the SPDX identifier via GitHub repo metadata or `libs/scrap/Cargo.toml` / `libs/enigo/Cargo.toml` before publishing the fork.**
+- **VERIFIED 2026-11-22:** GitHub API `GET /repos/rustdesk/rustdesk` returns `license.spdx_id = "AGPL-3.0"` (key `agpl-3.0`, name "GNU Affero General Public License v3.0"). The LICENCE file's template text says "or (at your option) any later version", but the official SPDX identifier as published by GitHub is **AGPL-3.0** (not `-or-later`). Mr. Support fork must use AGPL-3.0 to match the upstream SPDX. `hbb_common/Cargo.toml` also has no `license` field (same as root); `libs/scrap` and `libs/enigo` are MIT.
 
 ### Sub-crate licenses (verified from Cargo.toml)
 
@@ -59,12 +59,13 @@ rustdesk/
 └── .gitmodules              — submodule definition for libs/hbb_common
 ```
 
-### Critical finding: `libs/hbb_common` is empty
+### `libs/hbb_common` — VERIFIED 2026-11-22 (submodule initialized)
 
-- `.gitmodules` defines: `libs/hbb_common` → `https://github.com/rustdesk/hbb_common`
-- The shallow clone (`--depth 1`) did not initialize submodules. The directory exists but contains no files.
-- `hbb_common` is the shared crate with the server (rendezvous proto, sockets, `Config` core). **Any build or deeper inspection requires `git submodule update --init` first.**
-- **PENDING:** Initialize the submodule in a safe environment and inspect `hbb_common` (proto definitions, config keys, socket layer).
+- `git submodule update --init libs/hbb_common` succeeded; checked out commit `fae47e024dd83cef6aaecde0aa7d11731df11649` from `https://github.com/rustdesk/hbb_common`.
+- **Proto definitions:** `protos/rendezvous.proto` (proto3, package `hbb`, 30 messages). Key messages: `IdPk`, `RegisterPeer`, `PunchHoleRequest`, `PunchHole`, `RendezvousMessage` (oneof envelope), `KeyExchange`/`KxParams`, `RequestRelay`/`RelayResponse`, `PeerDiscovery`, `OnlineRequest`/`OnlineResponse`. Enums: `ConnType` (DEFAULT, FILE_TRANSFER, PORT_FORWARD, RDP, VIEW_CAMERA, TERMINAL), `NatType`. `ControlPermissions` bitmask includes keyboard, clipboard, file, audio, camera, terminal, tunnel, restart, recording, block_input, privacy_mode, usb. Generated via `protobuf-codegen` in `build.rs` (`pure()` mode, tokio_bytes).
+- **Config core (`src/config.rs`):** `Config` (id, enc_id, password, salt, key_pair, key_confirmed, keys_confirmed), `Config2` (rendezvous_server, nat_type, serial, unlock_pin, trusted_devices, socks, options HashMap), `PeerConfig` (password, size, view_style, scroll_style, etc.), `Socks5Server`, `Resolution`. Globals via `lazy_static` RwLocks: `CONFIG`, `CONFIG2`, `LOCAL_CONFIG`, `STATUS`, `ONLINE`, `APP_NAME` (default "RustDesk"), `APP_DIR`. Constants: `RENDEZVOUS_SERVERS = ["rs-ny.rustdesk.com"]`, `RENDEZVOUS_PORT = 21116`, `RELAY_PORT = 21117`, `WS_RENDEZVOUS_PORT = 21118`, `WS_RELAY_PORT = 21119`, `RS_PUB_KEY`, timeouts 12s/18s. Config stored as TOML/JSON via `confy`-style load/store (`load_path`/`store_path`). Per AGENTS.md, client-only options belong in `libs/base`, not here (shared with server — changes cost a round-trip).
+- **Socket layer:** `src/tcp.rs` (`FramedStream` over `DynTcpStream` + `BytesCodec`, sodiumoxide secretbox encryption, key exchange v0/v1 with transcript binding), `src/udp.rs` (`FramedSocket` Direct/ProxySocks), `src/socket_client.rs` (host:port helpers, server validation), `src/stream.rs` (`Stream` enum: WebRTC / WebSocket / Tcp), `src/websocket.rs`, `src/webrtc.rs` (feature-gated, pinned to 0.13 for Rust 1.75 compat), `src/tls.rs`, `src/proxy.rs`, `src/compress.rs` (zstd). `src/lib.rs` re-exports tokio, protobuf, futures, sodiumoxide, etc. and defines `SessionID = uuid::Uuid`.
+- **Implication for Mr. Support:** Adding agent messages (e.g. `AgentActionRequest`) to `rendezvous.proto` would require modifying the submodule shared with the server — prefer client-only code in `libs/base` per AGENTS.md, or a separate sidecar protocol. Frame tap and input injection points remain in `src/server/video_service.rs` and `input_service.rs` (see §3).
 
 ### Workspace members (from root `Cargo.toml`)
 
@@ -161,8 +162,8 @@ The backend is chosen at compile time via `cfg` flags set in `libs/scrap/build.r
 - **Files:** `capturer.rs`, `config.rs`, `display.rs`, `ffi.rs`, `frame.rs`, `mod.rs`
 - `quartz/capturer.rs`: Creates a display stream with a dispatch queue; the handler receives `IOSurfaceRef` on `FrameComplete`.
 - `quartz/ffi.rs`: Links `CoreGraphics`, `CoreFoundation`, `IOSurface`. Defines `CGDisplayStreamCreateWithDispatchQueue`, `CGDisplayStreamStart/Stop`, `CGMainDisplayID`, `IOSurfaceGetBaseAddress`, etc.
-- **⚠️ Correction to plan:** The plan claimed ScreenCaptureKit. The current code uses **CGDisplayStream**, not ScreenCaptureKit. ScreenCaptureKit appears only as a Cargo feature flag (`screencapturekit`) — **PENDING:** verify whether a ScreenCaptureKit backend exists elsewhere or if the flag is vestigial.
-- **PENDING:** TCC permission flow (Screen Recording permission) — not verified in this read. macOS requires explicit user grant for screen capture; the permission request code was not inspected.
+- **⚠️ Correction to plan (VERIFIED 2026-11-22):** Video capture on macOS uses **CGDisplayStream** (`CGDisplayStreamCreateWithDispatchQueue` in `libs/scrap/src/quartz/capturer.rs`), NOT ScreenCaptureKit. ScreenCaptureKit exists only as a Cargo feature flag (`screencapturekit = ["cpal/screencapturekit"]` in root `Cargo.toml:48`, with `cpal` from branch `osx-screencapturekit`) and is used **only for audio capture** via cpal (`src/server/audio_service.rs:185,215,378` — `cpal::HostId::ScreenCaptureKit`, `HOST_SCREEN_CAPTURE_KIT`). There is **no ScreenCaptureKit video backend** in `libs/scrap`. Error handling for ScreenCaptureKit audio stop is in `src/server/audio_service/audio_capture_error.rs` (error -3821). `src/flutter_ffi.rs:2750` gates a function on the feature. Conclusion: flag is real but audio-only; video migration to ScreenCaptureKit would be new work.
+- **TCC permissions (VERIFIED 2026-11-22):** See §4b below. Screen Recording check uses `CGPreflightScreenCaptureAccess()` / `CGRequestScreenCaptureAccess()` via `src/platform/macos.mm` (`IsCanScreenRecording`), gated to macOS >= 11 via `CanUseNewApiForScreenCaptureCheck()`. Fallback heuristic via `CGWindowListCopyWindowInfo` in `src/platform/macos.rs:167-260` (`is_can_screen_recording`). Accessibility (input) uses `AXIsProcessTrustedWithOptions` with `kAXTrustedCheckOptionPrompt` in `src/platform/macos.rs:117-156` (`is_process_trusted`). Input Monitoring uses `IOHIDCheckAccess`/`IOHIDRequestAccess` in `macos.mm`. No TCC code in `libs/scrap/src/quartz/` or `libs/enigo/src/macos/` — checks live in `src/platform/macos.rs` + `macos.mm`.
 
 ### Windows capture (`libs/scrap/src/dxgi/`)
 
@@ -188,6 +189,20 @@ The backend is chosen at compile time via `cfg` flags set in `libs/scrap/build.r
 
 - Emits `cargo:rustc-cfg=dxgi` on Windows, `quartz` on macOS, `x11` on Unix.
 - Requires vcpkg libraries: `libyuv`, `libvpx`, `aom` (bindgen).
+
+---
+
+### 4b. macOS TCC Permissions (VERIFIED 2026-11-22)
+
+Three distinct TCC checks, all in `src/platform/macos.rs` + `src/platform/macos.mm` (none in `libs/scrap/src/quartz/` or `libs/enigo/src/macos/`):
+
+| Permission | API | Location | Prompt behavior |
+|---|---|---|---|
+| Screen Recording | `CGPreflightScreenCaptureAccess()` / `CGRequestScreenCaptureAccess()` | `macos.mm:32-34` (`IsCanScreenRecording`), exposed via `IsCanScreenRecording()` FFI | `prompt=true` calls `CGRequestScreenCaptureAccess()` (shows system prompt); macOS >= 11 only (`CanUseNewApiForScreenCaptureCheck`, `macos.mm:14-21`). Fallback: `CGWindowListCopyWindowInfo` heuristic in `macos.rs:167-260` for older macOS. |
+| Accessibility (input injection) | `AXIsProcessTrustedWithOptions` + `kAXTrustedCheckOptionPrompt` | `macos.rs:117-156` (`is_process_trusted(prompt)`) | `prompt=true` sets `kAXTrustedCheckOptionPrompt = YES`, which prompts user to open System Settings → Privacy & Security → Accessibility. |
+| Input Monitoring | `IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)` / `IOHIDRequestAccess` | `macos.mm` (`InputMonitoringAuthStatus`) | On denied, opens `x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent` URL. |
+
+**Implication for Mr. Support:** Onboarding must check all three before starting capture/input, and guide the user to grant them in System Settings. The Screen Recording check should use the new API (`CGPreflightScreenCaptureAccess`) on macOS >= 11, with the window-list heuristic as fallback. Note the comment in `macos.rs`: `tccutil reset All com.carriez.rustdesk` resets all permissions for testing. Bundle ID matters: RustDesk uses `com.carriez.rustdesk` / ORG `com.carriez` (config.rs) — Mr. Support will need its own bundle ID, so TCC grants will not carry over.
 
 ---
 
@@ -227,7 +242,7 @@ pub trait KeyboardControllable {
 - Scroll: `CGEventCreateScrollWheelEvent`.
 - Keyboard layout: `UCKeyTranslate` + `TISCopyCurrentKeyboardInputSource`.
 - Double-click interval from `NSEvent`.
-- **PENDING:** Accessibility permission (TCC) requirement — not verified in this read. macOS requires Accessibility access for `CGEventPost`; the permission check code was not inspected.
+- **Accessibility permission (VERIFIED 2026-11-22):** `CGEventPost` requires Accessibility trust. RustDesk checks via `AXIsProcessTrustedWithOptions` + `kAXTrustedCheckOptionPrompt` in `src/platform/macos.rs:117-156` (`is_process_trusted(prompt)`), which can prompt the user to open System Settings. Input Monitoring (`IOHIDCheckAccess`) is checked separately in `macos.mm`. Mr. Support must replicate this check before injecting input on macOS.
 
 ### Windows input (`libs/enigo/src/win/win_impl.rs`)
 
@@ -267,10 +282,10 @@ pub trait KeyboardControllable {
 
 | # | Risk / Question | Severity | Status |
 |---|---|---|---|
-| 1 | `hbb_common` submodule not initialized — cannot build or fully inspect without it | **Blocker** for M0 build validation | **PENDING** — needs `git submodule update --init` in a safe env |
-| 2 | Exact SPDX license identifier (AGPL-3.0 vs AGPL-3.0-or-later) not confirmed from Cargo.toml | Medium — affects fork licensing | **PENDING** — check GitHub repo metadata |
-| 3 | macOS capture uses CGDisplayStream, not ScreenCaptureKit (plan correction) | Medium — CGDisplayStream is deprecated on newer macOS; ScreenCaptureKit may be required for future compatibility | **PENDING** — verify if ScreenCaptureKit backend exists or is planned |
-| 4 | macOS TCC permissions (Screen Recording + Accessibility) — permission flow not inspected | High — affects UX and onboarding design | **PENDING** |
+| 1 | `hbb_common` submodule not initialized — cannot build or fully inspect without it | **Blocker** for M0 build validation | **RESOLVED 2026-11-22** — submodule initialized at `fae47e0`, inspected (proto/config/socket, see §2) |
+| 2 | Exact SPDX license identifier (AGPL-3.0 vs AGPL-3.0-or-later) not confirmed from Cargo.toml | Medium — affects fork licensing | **RESOLVED 2026-11-22** — GitHub API returns `AGPL-3.0`; use AGPL-3.0 for fork |
+| 3 | macOS capture uses CGDisplayStream, not ScreenCaptureKit (plan correction) | Medium — CGDisplayStream is deprecated on newer macOS; ScreenCaptureKit may be required for future compatibility | **VERIFIED 2026-11-22** — ScreenCaptureKit is audio-only (cpal); no video backend exists. Migration would be new work. |
+| 4 | macOS TCC permissions (Screen Recording + Accessibility) — permission flow not inspected | High — affects UX and onboarding design | **VERIFIED 2026-11-22** — `CGPreflightScreenCaptureAccess` + `AXIsProcessTrustedWithOptions` in `src/platform/macos.rs`/`macos.mm` (see §4b) |
 | 5 | Windows secure desktop (UAC) — `SendInput` cannot inject into secure prompts; consent.exe mechanism not fully traced | Medium — AI cannot act on UAC prompts without elevation | **PENDING** |
 | 6 | Linux Wayland input — requires uinput or RDP bridge; permission model unclear | **High** — may block Linux support without root/uinput setup | **PENDING** |
 | 7 | Android/iOS capture and input — stub `Enigo` on mobile; MediaProjection flow not inspected | Medium — mobile support scope unclear | **PENDING** |
@@ -282,10 +297,10 @@ pub trait KeyboardControllable {
 
 ### Immediate (M0 completion)
 
-1. **Initialize `hbb_common` submodule** in a safe build environment and inspect proto definitions, `Config` core, and socket layer.
-2. **Confirm SPDX identifier** via GitHub repo metadata (`gh api repos/rustdesk/rustdesk --jq .license`).
-3. **Verify ScreenCaptureKit status:** search for `screencapturekit` feature usage; determine if CGDisplayStream is the only macOS backend or if ScreenCaptureKit is available behind the feature flag.
-4. **Inspect TCC permission code** on macOS (`src/platform/macos/`, `libs/scrap/src/quartz/`).
+1. ✅ **DONE 2026-11-22** — `hbb_common` submodule initialized (`fae47e0`), proto/config/socket inspected (see §2).
+2. ✅ **DONE 2026-11-22** — GitHub API confirms SPDX `AGPL-3.0` (see §1).
+3. ✅ **DONE 2026-11-22** — ScreenCaptureKit is audio-only via cpal; video remains CGDisplayStream (see §4).
+4. ✅ **DONE 2026-11-22** — TCC code in `src/platform/macos.rs` + `macos.mm` (CGPreflight, AXIsProcessTrusted, IOHIDCheckAccess); none in scrap quartz/enigo (see §4b).
 5. **Inspect Windows consent/UAC handling** (`src/platform/windows/`, `consent.exe` references).
 6. **Inspect Linux Wayland input path** (`src/server/uinput.rs`, `src/server/rdp_input.rs`, `src/server/input_service.rs` Wayland sections).
 
@@ -299,7 +314,7 @@ pub trait KeyboardControllable {
 
 - **AI vision tap:** Best placed in `video_service.rs` after `c.frame(spf)` and before `frame.to(encoder.yuvfmt(), ...)`. The `Frame::PixelBuffer` variant gives raw pixels; `Frame::Texture` gives a GPU texture pointer (harder to consume).
 - **AI action injection:** Best placed in `input_service.rs` at the `ENIGO.lock()` call sites, behind a consent validator. The swarm coordinator would serialize actions through a single queue to avoid conflicts.
-- **Licensing:** Fork must be AGPL-3.0 (or -or-later, pending confirmation). The AI agent layer can be a separate process communicating via IPC to remain Apache-2.0/MIT, **but** this needs legal review of the AGPL network clause (section 13) — **PENDING legal review**.
+- **Licensing:** Fork must be AGPL-3.0 (VERIFIED via GitHub API 2026-11-22; LICENCE template mentions or-later but SPDX is AGPL-3.0). The AI agent layer can be a separate process communicating via IPC to remain Apache-2.0/MIT, **but** this needs legal review of the AGPL network clause (section 13) — **PENDING legal review**.
 - **macOS MVP:** CGDisplayStream works today but is deprecated. Plan for ScreenCaptureKit migration in M5 (macOS packaging) at the latest.
 
 ---
@@ -330,8 +345,15 @@ pub trait KeyboardControllable {
 | `libs/enigo/src/win/win_impl.rs` | SendInput backend |
 | `libs/enigo/src/linux/nix_impl.rs` | X11/Wayland routing |
 | `libs/base/Cargo.toml` | Client-only crate, dependencies |
+| `libs/hbb_common/Cargo.toml` | Shared crate deps (tokio, protobuf, sodiumoxide, webrtc pinned 0.13) |
+| `libs/hbb_common/protos/rendezvous.proto` | 30 messages, ConnType, ControlPermissions, rendezvous protocol |
+| `libs/hbb_common/src/config.rs` | Config/Config2/PeerConfig, rendezvous ports, RS_PUB_KEY |
+| `libs/hbb_common/src/lib.rs` | Module exports, SessionID, Stream re-exports |
+| `libs/hbb_common/src/tcp.rs` / `udp.rs` / `stream.rs` / `socket_client.rs` | Socket layer (FramedStream, FramedSocket, Stream enum) |
+| `src/platform/macos.rs` (TCC section) | `is_process_trusted`, `is_can_screen_recording`, `is_can_input_monitoring` |
+| `src/platform/macos.mm` | `IsCanScreenRecording` (CGPreflight), `InputMonitoringAuthStatus` (IOHID) |
 
-**Not inspected (PENDING):** `libs/hbb_common/*` (empty), `src/platform/*`, `flutter/*`, `libs/clipboard/*`, `libs/virtual_display/*`, Android JNI code, Web TS client, build scripts beyond `libs/scrap/build.rs`.
+**Not inspected (PENDING):** `src/platform/*` beyond macOS TCC (windows/linux/android/ios), `flutter/*`, `libs/clipboard/*`, `libs/virtual_display/*`, Android JNI code, Web TS client, build scripts beyond `libs/scrap/build.rs` and `libs/hbb_common/build.rs`.
 
 ---
 
