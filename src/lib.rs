@@ -3,6 +3,7 @@
 pub mod agent;
 pub mod audit;
 pub mod consent;
+pub mod mcp;
 pub mod platform;
 pub mod swarm;
 pub mod transport;
