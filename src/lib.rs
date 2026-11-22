@@ -8,6 +8,7 @@ pub mod mcp;
 pub mod platform;
 pub mod swarm;
 pub mod transport;
+pub mod ui;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
