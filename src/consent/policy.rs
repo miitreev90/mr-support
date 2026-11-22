@@ -2,7 +2,12 @@
 use crate::agent::Action;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum RiskLevel { Low, Medium, High, Critical }
+pub enum RiskLevel {
+    Low,
+    Medium,
+    High,
+    Critical,
+}
 
 #[derive(Debug, Clone)]
 pub struct Policy {
@@ -11,12 +16,21 @@ pub struct Policy {
 }
 
 impl Default for Policy {
-    fn default() -> Self { Self { require_approval_for_destructive: true, allow_unattended: false } }
+    fn default() -> Self {
+        Self {
+            require_approval_for_destructive: true,
+            allow_unattended: false,
+        }
+    }
 }
 
 impl Policy {
     pub fn assess(&self, action: &Action) -> RiskLevel {
-        if action.is_destructive() { RiskLevel::Critical } else { RiskLevel::Low }
+        if action.is_destructive() {
+            RiskLevel::Critical
+        } else {
+            RiskLevel::Low
+        }
     }
     pub fn needs_approval(&self, action: &Action) -> bool {
         self.require_approval_for_destructive && action.is_destructive()

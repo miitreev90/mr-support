@@ -9,6 +9,11 @@ pub struct Screenshot {
 
 impl Screenshot {
     pub fn new(width: u32, height: u32, data: Vec<u8>, timestamp_ms: u64) -> Self {
-        Self { width, height, data, timestamp_ms }
+        Self {
+            width,
+            height,
+            data,
+            timestamp_ms,
+        }
     }
 }

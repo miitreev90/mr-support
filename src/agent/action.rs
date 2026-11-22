@@ -10,7 +10,11 @@ pub enum Action {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum MouseButton { Left, Middle, Right }
+pub enum MouseButton {
+    Left,
+    Middle,
+    Right,
+}
 
 impl Action {
     pub fn is_destructive(&self) -> bool {

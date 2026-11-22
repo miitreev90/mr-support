@@ -22,7 +22,8 @@ impl Specialist {
             SpecialistKind::Apps => "Apps",
             SpecialistKind::Security => "Security",
             SpecialistKind::Files => "Files",
-        }.to_string();
+        }
+        .to_string();
         Self { kind, name }
     }
 }

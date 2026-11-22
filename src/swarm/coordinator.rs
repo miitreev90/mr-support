@@ -10,10 +10,15 @@ pub struct Coordinator {
 
 impl Coordinator {
     pub fn new(specialists: Vec<Specialist>) -> Self {
-        Self { specialists, input_queue: VecDeque::new() }
+        Self {
+            specialists,
+            input_queue: VecDeque::new(),
+        }
     }
 
-    pub fn specialists(&self) -> &[Specialist] { &self.specialists }
+    pub fn specialists(&self) -> &[Specialist] {
+        &self.specialists
+    }
 
     pub fn enqueue_action(&mut self, action: Action) {
         // Single queue to enigo — prevents conflicts between agents
@@ -24,7 +29,9 @@ impl Coordinator {
         self.input_queue.pop_front()
     }
 
-    pub fn pending_count(&self) -> usize { self.input_queue.len() }
+    pub fn pending_count(&self) -> usize {
+        self.input_queue.len()
+    }
 }
 
 pub fn default_specialists() -> Vec<Specialist> {

@@ -12,5 +12,10 @@ pub struct SwarmConfig {
 }
 
 impl Default for SwarmConfig {
-    fn default() -> Self { Self { max_agents: 5, share_captures: true } }
+    fn default() -> Self {
+        Self {
+            max_agents: 5,
+            share_captures: true,
+        }
+    }
 }

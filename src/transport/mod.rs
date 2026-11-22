@@ -12,5 +12,10 @@ pub struct TransportConfig {
 }
 
 impl Default for TransportConfig {
-    fn default() -> Self { Self { relay_host: "localhost".to_string(), use_e2ee: true } }
+    fn default() -> Self {
+        Self {
+            relay_host: "localhost".to_string(),
+            use_e2ee: true,
+        }
+    }
 }

@@ -1,7 +1,7 @@
 // Audit log: append-only record with before/after captures
 pub mod log;
 
-pub use log::{AuditLog, AuditEntry};
+pub use log::AuditLog;
 
 use serde::{Deserialize, Serialize};
 

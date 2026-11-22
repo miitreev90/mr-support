@@ -1,9 +1,9 @@
 // Consent model: explicit per-session approval, visible indicator, instant revocation
-pub mod session;
 pub mod policy;
+pub mod session;
 
-pub use session::{ConsentSession, SessionState};
 pub use policy::{Policy, RiskLevel};
+pub use session::{ConsentSession, SessionState};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ConsentDecision {

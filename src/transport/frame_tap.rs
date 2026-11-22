@@ -7,11 +7,22 @@ pub struct FrameTap {
 }
 
 impl Default for FrameTap {
-    fn default() -> Self { Self { fps: 2, max_width: 1280 } }
+    fn default() -> Self {
+        Self {
+            fps: 2,
+            max_width: 1280,
+        }
+    }
 }
 
 impl FrameTap {
-    pub fn capture_to_screenshot(&self, width: u32, height: u32, pixels: Vec<u8>, ts: u64) -> Screenshot {
+    pub fn capture_to_screenshot(
+        &self,
+        width: u32,
+        height: u32,
+        pixels: Vec<u8>,
+        ts: u64,
+    ) -> Screenshot {
         Screenshot::new(width, height, pixels, ts)
     }
 }
