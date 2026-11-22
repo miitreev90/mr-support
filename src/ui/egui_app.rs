@@ -30,6 +30,16 @@ impl Default for MrSupportApp {
 
 #[cfg(feature = "gui")]
 impl MrSupportApp {
+    pub fn new(device_id: String) -> Self {
+        Self {
+            device_id,
+            ..Default::default()
+        }
+    }
+}
+
+#[cfg(feature = "gui")]
+impl MrSupportApp {
     fn load_logo(&mut self, ctx: &egui::Context) {
         if self.logo_texture.is_some() {
             return;
@@ -374,7 +384,7 @@ impl eframe::App for MrSupportApp {
 }
 
 #[cfg(feature = "gui")]
-pub fn run_gui() -> Result<(), eframe::Error> {
+pub fn run_gui(device_id: String) -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([780.0f32, 600.0f32]),
         ..Default::default()
@@ -382,6 +392,6 @@ pub fn run_gui() -> Result<(), eframe::Error> {
     eframe::run_native(
         "Mr. Support",
         options,
-        Box::new(|_cc| Ok(Box::new(MrSupportApp::default()))),
+        Box::new(|_cc| Ok(Box::new(MrSupportApp::new(device_id)))),
     )
 }
