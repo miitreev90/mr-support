@@ -2,6 +2,7 @@
 // Skeleton is GUI-agnostic and testable; egui rendering added behind feature flag.
 pub mod audit_viewer;
 pub mod consent_dialog;
+pub mod egui_app;
 pub mod mcp_panel;
 pub mod state;
 

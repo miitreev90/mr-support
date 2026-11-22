@@ -5,6 +5,16 @@
 use mr_support::{agent, audit, consent, platform, swarm, transport};
 
 fn main() {
+    #[cfg(feature = "gui")]
+    {
+        if std::env::args().any(|a| a == "--gui") {
+            if let Err(e) = mr_support::ui::egui_app::run_gui() {
+                eprintln!("GUI error: {}", e);
+                std::process::exit(1);
+            }
+            return;
+        }
+    }
     println!(
         "Mr. Support v{} — AI support, human in control.",
         mr_support::VERSION
