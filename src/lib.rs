@@ -2,6 +2,7 @@
 // Modules: agent, swarm, consent, audit, transport, platform
 pub mod agent;
 pub mod audit;
+pub mod connectivity;
 pub mod consent;
 pub mod mcp;
 pub mod platform;
