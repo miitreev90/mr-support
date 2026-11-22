@@ -1,6 +1,4 @@
-// Consent session lifecycle
-use super::ConsentDecision;
-
+// Consent session: explicit approval, visible indicator, instant revocation (M3)
 #[derive(Debug, Clone, PartialEq)]
 pub enum SessionState {
     Pending,
@@ -14,41 +12,57 @@ pub enum SessionState {
 pub struct ConsentSession {
     pub session_id: String,
     pub client_name: String,
-    pub purpose: String,
+    pub task_description: String,
     pub state: SessionState,
-    pub created_at_ms: u64,
+    pub started_at_ms: u64,
+    pub indicator_visible: bool,
 }
 
 impl ConsentSession {
     pub fn new(
         session_id: String,
         client_name: String,
-        purpose: String,
-        created_at_ms: u64,
+        task_description: String,
+        started_at_ms: u64,
     ) -> Self {
         Self {
             session_id,
             client_name,
-            purpose,
+            task_description,
             state: SessionState::Pending,
-            created_at_ms,
+            started_at_ms,
+            indicator_visible: false,
         }
     }
 
     pub fn approve(&mut self) {
         self.state = SessionState::Active;
+        self.indicator_visible = true;
     }
+
     pub fn revoke(&mut self) {
         self.state = SessionState::Revoked;
+        self.indicator_visible = false;
     }
+
     pub fn is_active(&self) -> bool {
-        self.state == SessionState::Active
+        self.state == SessionState::Active && self.indicator_visible
     }
-    pub fn decision(&self) -> ConsentDecision {
-        match self.state {
-            SessionState::Active => ConsentDecision::Approved,
-            SessionState::Revoked => ConsentDecision::Revoked,
-            _ => ConsentDecision::Denied,
-        }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_revocation_hides_indicator() {
+        let mut s = ConsentSession::new("s1".into(), "Client".into(), "Fix".into(), 0);
+        assert!(!s.is_active());
+        s.approve();
+        assert!(s.is_active());
+        assert!(s.indicator_visible);
+        s.revoke();
+        assert!(!s.is_active());
+        assert!(!s.indicator_visible);
     }
 }

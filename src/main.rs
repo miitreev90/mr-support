@@ -16,7 +16,7 @@ fn main() {
     );
     println!(
         "Consent default policy: {:?}",
-        consent::Policy::default().assess(&agent::Action::Wait { ms: 100 })
+        consent::Policy::default().assess_risk(&agent::Action::Wait { ms: 100 })
     );
     let _ = audit::AuditLog::new();
     let _ = transport::TransportConfig::default();

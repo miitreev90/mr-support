@@ -12,6 +12,7 @@ pub enum SpecialistKind {
 pub struct Specialist {
     pub kind: SpecialistKind,
     pub name: String,
+    pub current_task: Option<String>,
 }
 
 impl Specialist {
@@ -24,6 +25,18 @@ impl Specialist {
             SpecialistKind::Files => "Files",
         }
         .to_string();
-        Self { kind, name }
+        Self {
+            kind,
+            name,
+            current_task: None,
+        }
+    }
+
+    pub fn assign(&mut self, task: &str) {
+        self.current_task = Some(task.to_string());
+    }
+
+    pub fn is_busy(&self) -> bool {
+        self.current_task.is_some()
     }
 }

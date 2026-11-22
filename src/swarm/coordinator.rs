@@ -1,4 +1,4 @@
-// Coordinator: serializes input actions, consolidates plan for human approval
+// Swarm coordinator: single input queue, dispatch to specialists (M2b)
 use super::specialist::{Specialist, SpecialistKind};
 use crate::agent::Action;
 use std::collections::VecDeque;
@@ -6,6 +6,7 @@ use std::collections::VecDeque;
 pub struct Coordinator {
     specialists: Vec<Specialist>,
     input_queue: VecDeque<Action>,
+    shared_memory: Vec<String>,
 }
 
 impl Coordinator {
@@ -13,6 +14,7 @@ impl Coordinator {
         Self {
             specialists,
             input_queue: VecDeque::new(),
+            shared_memory: Vec::new(),
         }
     }
 
@@ -21,7 +23,6 @@ impl Coordinator {
     }
 
     pub fn enqueue_action(&mut self, action: Action) {
-        // Single queue to enigo — prevents conflicts between agents
         self.input_queue.push_back(action);
     }
 
@@ -31,6 +32,21 @@ impl Coordinator {
 
     pub fn pending_count(&self) -> usize {
         self.input_queue.len()
+    }
+
+    /// Dispatch a task to the specialist matching the kind (M2b)
+    pub fn dispatch(&mut self, kind: SpecialistKind, task: &str) -> bool {
+        if let Some(s) = self.specialists.iter_mut().find(|s| s.kind == kind) {
+            s.assign(task);
+            self.shared_memory.push(format!("{:?}: {}", kind, task));
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn shared_memory(&self) -> &[String] {
+        &self.shared_memory
     }
 }
 
@@ -42,4 +58,17 @@ pub fn default_specialists() -> Vec<Specialist> {
         Specialist::new(SpecialistKind::Security),
         Specialist::new(SpecialistKind::Files),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dispatch_specialist() {
+        let mut c = Coordinator::new(default_specialists());
+        assert!(c.dispatch(SpecialistKind::Network, "check DNS"));
+        assert_eq!(c.shared_memory().len(), 1);
+        assert!(c.shared_memory()[0].contains("check DNS"));
+    }
 }
