@@ -2,7 +2,7 @@
 pub mod frame_tap;
 pub mod input;
 
-pub use frame_tap::FrameTap;
+pub use frame_tap::{FrameTap, FrameTapConfig};
 pub use input::InputInjector;
 
 #[derive(Debug, Clone)]
