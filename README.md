@@ -10,7 +10,9 @@ Open-source, Rust-based remote support tool where a swarm of specialized AI agen
 
 ## Logo
 
-Logo idea by Emma: glasses with mustache, Camilo/Pringles style. Floating version: glasses + mustache arranged as on an invisible face, no face, no spy vibe. Final logo by Emma, coming soon in `assets/`.
+![Mr. Support logo](assets/logo.jpg)
+
+Logo by Emma: glasses with mustache, Camilo/Pringles style. Floating glasses + mustache arranged as on an invisible face, no face, no spy vibe. Official logo approved 2026-11-21.
 
 ## Vision
 
