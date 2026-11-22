@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#f5f1e8"/>
+  <!-- Glasses -->
+  <g>
+    <circle cx="130" cy="150" r="60" fill="#111"/>
+    <circle cx="270" cy="150" r="60" fill="#111"/>
+    <rect x="185" y="140" width="30" height="12" rx="6" fill="#111"/>
+    <rect x="60" y="145" width="20" height="10" rx="5" fill="#111"/>
+    <rect x="320" y="145" width="20" height="10" rx="5" fill="#111"/>
+    <!-- Code symbols left lens: <> -->
+    <path d="M110 130 L95 150 L110 170 M150 130 L165 150 L150 170" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Code symbols right lens: </> -->
+    <path d="M250 130 L235 150 L250 170 M270 125 L285 175 M295 165 L310 165" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Circuit details -->
+    <circle cx="130" cy="150" r="45" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="20 10"/>
+    <circle cx="270" cy="150" r="45" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="20 10"/>
+  </g>
+  <!-- Mustache -->
+  <path d="M200 260 C170 230 120 240 90 270 C70 290 50 285 45 270 C40 255 55 245 70 250 C50 260 40 285 55 305 C75 330 130 335 170 310 C190 298 200 285 200 275 C200 285 210 298 230 310 C270 335 325 330 345 305 C360 285 350 260 330 250 C345 245 360 255 355 270 C350 285 330 290 310 270 C280 240 230 230 200 260 Z" fill="#8b5a2b"/>
+  <path d="M200 260 C170 230 120 240 90 270 C70 290 50 285 45 270" fill="none" stroke="#a06a35" stroke-width="3" opacity="0.6"/>
+  <path d="M200 260 C230 230 280 240 310 270 C330 290 350 285 355 270" fill="none" stroke="#a06a35" stroke-width="3" opacity="0.6"/>
+</svg>
