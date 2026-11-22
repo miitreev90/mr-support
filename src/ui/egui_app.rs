@@ -62,7 +62,7 @@ impl eframe::App for MrSupportApp {
 
         egui::TopBottomPanel::top("header")
             .frame(
-                egui::Frame::none()
+                egui::Frame::NONE
                     .fill(egui::Color32::from_rgb(255, 255, 255))
                     .stroke(egui::Stroke::new(
                         1.0f32,
@@ -97,7 +97,7 @@ impl eframe::App for MrSupportApp {
             });
 
         egui::CentralPanel::default()
-            .frame(egui::Frame::none().fill(egui::Color32::from_rgb(248, 249, 250)))
+            .frame(egui::Frame::NONE.fill(egui::Color32::from_rgb(248, 249, 250)))
             .show(ctx, |ui| {
                 ui.add_space(12.0f32);
                 egui::Frame::group(ui.style())
@@ -153,7 +153,7 @@ impl eframe::App for MrSupportApp {
                         });
                         ui.add_space(8.0f32);
                         if self.ai_active {
-                            egui::Frame::none()
+                            egui::Frame::NONE
                                 .fill(egui::Color32::from_rgb(220, 252, 231))
                                 .stroke(egui::Stroke::new(
                                     1.0f32,
