@@ -14,15 +14,17 @@
 
 **Caso de uso inicial (MVP):** soporte remoto con IA para los clientes de Miguel. Ejemplo concreto: dar soporte a la Mac de una doctora (instalar/configurar software, resolver problemas de apps, guiar tareas) sin que Miguel tenga que estar en AnyDesk + terminal al mismo tiempo. La IA ve la pantalla, propone/ejecuta acciones, y el cliente aprueba y supervisa.
 
+**Requisito multi-plataforma (decisión 2026-11-21):** debe funcionar en **Windows, macOS, Linux, Android e iOS**, como AnyDesk y TeamViewer. No es solo macOS: el diseño de captura/input y la UI deben ser cross-platform desde el inicio (RustDesk ya es cross-platform; la capa de agente debe abstraer por SO).
+
 **Alcance del MVP:**
-- Solo macOS primero (es donde están sus clientes hoy; p. ej. la MacBook Air de la doctora).
+- **Multi-plataforma desde el inicio: Windows, macOS, Linux, Android e iOS** (como AnyDesk/TeamViewer). Priorizar macOS para piloto con clientes actuales, pero la arquitectura debe ser cross-platform (captura/input abstraídos por SO).
 - Una sesión a la vez, con aprobación explícita del cliente por sesión.
 - **Enjambre multi-agente desde el inicio (decisión 2026-11-21, todo o nada):** coordinador + agentes especializados en paralelo (diagnóstico, red, apps, seguridad, archivos). El coordinador serializa acciones de input (cola única hacia enigo) para evitar conflictos.
 - Acciones básicas: clic, doble clic, tecleo, atajos de teclado, scroll, captura de pantalla para la IA.
 - Modo "aprobar cada acción" al inicio; autonomía acotada después.
 - Audit log completo de acciones (con agente que ejecutó cada una).
 - Relay/ID server autoalojado (hbbs/hbbr) para que los datos no pasen por terceros.
-- Fuera de alcance del MVP: Windows/Linux (fase 2), acceso desatendido, multi-sesión, app móvil, marketplace de agentes.
+- Fuera de alcance del MVP: acceso desatendido, multi-sesión, marketplace de agentes.
 
 ## 2. RustDesk
 
@@ -140,7 +142,7 @@ Diseñado para el caso sensible: equipo de una doctora con datos de salud (datos
 7. **M6 — Piloto real.** Sesión supervisada con un cliente (p. ej. la Mac de la doctora) para una tarea acotada (instalar/configurar una app). Entregable: reporte del piloto + ajustes.
 8. **M7 — Liberación pública.** Repo público **Mr. Support**, LICENSE(s), README, guía de contribución, demo en video. Entregable: v0.1 pública.
 
-*(Fase 2, fuera del MVP: Windows y Linux, acceso desatendido con consentimiento previo, inferencia local, multi-sesión.)*
+*(Fase 2, fuera del MVP: acceso desatendido con consentimiento previo, inferencia local, multi-sesión.)*
 
 ## 7. Riesgos y preguntas abiertas
 
@@ -161,7 +163,7 @@ Diseñado para el caso sensible: equipo de una doctora con datos de salud (datos
 2. ¿Modelo de IA: API en la nube (Claude Computer Use u otro) o modelo local? (Define privacidad y costo.)
 3. ¿El servicio lo opera Miguel (SaaS → AGPL sección 13 aplica de lleno) o cada cliente instala su instancia?
 4. ~~¿Nombre del proyecto?~~ → **Resuelto 2026-11-21: Mr. Support.** Tagline: "Mr. Support — AI support, human in control." Logo idea de Emma: lentes con bigote tipo Camilo/Pringles.
-5. ¿macOS primero confirmado, o también Windows desde el inicio?
+5. ~~¿macOS primero confirmado, o también Windows desde el inicio?~~ → **Resuelto 2026-11-21: multi-plataforma desde el inicio — Windows, macOS, Linux, Android e iOS (como AnyDesk/TeamViewer).**
 6. Enjambre multi-agente (desde el inicio): ¿coordinador central o peer-to-peer, y cómo se serializan las acciones de input para evitar conflictos entre agentes?
 
 ## Fuentes y estado de verificación

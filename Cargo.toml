@@ -1,0 +1,15 @@
+[package]
+name = "mr-support"
+version = "0.1.0"
+edition = "2021"
+description = "Mr. Support — AI support, human in control. Open-source Rust remote support with multi-agent swarm."
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/miitreev90/mr-support"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[workspace]
+members = []
